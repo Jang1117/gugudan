@@ -816,7 +816,13 @@
       };
 
       recognition.onend = () => {
-        log(`🔴 Recognition 종료 (gameState: ${gameState}, micStream: ${micStream?.active})`);
+        log(`🔴 Recognition 종료 (gameState: ${gameState}, micStream: ${micStream?.active}, isSpeaking: ${isSpeaking})`);
+        
+        // TTS 중이면 재시작 안함 (TTS 끝나면 자동 재시작됨)
+        if (isSpeaking) {
+          log('⏸️ TTS 중이라 재시작 안함');
+          return;
+        }
         
         if ((gameState === 'playing' || gameState === 'listening') && micStream && micStream.active) {
           setTimeout(() => {
@@ -857,16 +863,41 @@
       }
     }
 
-    // TTS
+    // TTS - 말하는 동안 음성인식 중지
+    let isSpeaking = false;
+    
     function speak(text, onEnd) {
       synth.cancel();
+      isSpeaking = true;
+      
+      // TTS 시작 전 음성인식 중지
+      stopRecognition();
+      log(`🔊 TTS 시작: "${text}"`);
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ko-KR';
       utterance.rate = 0.9;
       utterance.pitch = 1;
-      if (onEnd) {
-        utterance.onend = onEnd;
-      }
+      
+      utterance.onend = () => {
+        log('🔊 TTS 완료');
+        isSpeaking = false;
+        
+        // TTS 끝나고 잠시 후 음성인식 재시작
+        setTimeout(() => {
+          if (gameState === 'playing' || gameState === 'listening') {
+            startRecognition();
+          }
+          if (onEnd) onEnd();
+        }, 300);
+      };
+      
+      utterance.onerror = (e) => {
+        log(`❌ TTS 에러: ${e.error}`);
+        isSpeaking = false;
+        if (onEnd) onEnd();
+      };
+      
       synth.speak(utterance);
     }
 
@@ -1070,8 +1101,8 @@
 
       gameState = 'playing';
       
-      // 음성 인식 시작
-      startRecognition();
+      // 음성 인식은 TTS 끝나고 자동 시작됨
+      // startRecognition(); <- 제거
       
       speak('구구단 게임을 시작합니다!', () => {
         setTimeout(nextQuestion, 500);
