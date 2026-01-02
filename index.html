@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>구구단을 외자! 🎯</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
   <style>
@@ -10,29 +10,26 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       min-height: 100vh;
-      min-height: -webkit-fill-available;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       font-family: 'Noto Sans KR', sans-serif;
-      padding: 15px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-x: hidden;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
     .header h1 {
       font-family: 'Black Han Sans', sans-serif;
-      font-size: clamp(2rem, 7vw, 3.5rem);
+      font-size: clamp(2.5rem, 8vw, 4rem);
       color: #fff;
       text-shadow: 0 0 30px rgba(233, 69, 96, 0.5), 0 4px 0 #e94560;
       letter-spacing: 2px;
@@ -40,39 +37,34 @@
 
     .header p {
       color: rgba(255,255,255,0.6);
-      font-size: clamp(0.85rem, 2.5vw, 1rem);
-      margin-top: 8px;
+      font-size: 1rem;
+      margin-top: 10px;
     }
 
     .score-board {
       display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-      width: 100%;
-      max-width: 400px;
-      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
     }
 
     .score-item {
       background: rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 12px 25px;
+      border-radius: 20px;
+      padding: 15px 30px;
       text-align: center;
       border: 1px solid rgba(255,255,255,0.2);
-      flex: 1;
-      max-width: 140px;
     }
 
     .score-item.highlight {
       background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
-      box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+      box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
       border: none;
     }
 
     .score-label {
       color: rgba(255,255,255,0.6);
-      font-size: clamp(0.7rem, 2vw, 0.8rem);
+      font-size: 0.8rem;
     }
 
     .highlight .score-label {
@@ -81,24 +73,24 @@
 
     .score-value {
       color: #fff;
-      font-size: clamp(1.4rem, 4vw, 1.8rem);
+      font-size: 1.8rem;
       font-weight: bold;
     }
 
     .game-area {
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(20px);
-      border-radius: 25px;
-      padding: clamp(20px, 5vw, 35px);
+      border-radius: 30px;
+      padding: 40px;
       width: 100%;
-      max-width: 450px;
+      max-width: 500px;
       border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
 
     .question-display {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       display: none;
     }
 
@@ -107,7 +99,7 @@
     }
 
     .question-text {
-      font-size: clamp(2.5rem, 10vw, 4.5rem);
+      font-size: clamp(3rem, 12vw, 5rem);
       font-weight: 900;
       color: #fff;
       text-shadow: 0 0 40px rgba(233, 69, 96, 0.3);
@@ -115,10 +107,10 @@
 
     .message-box {
       text-align: center;
-      padding: 15px;
-      border-radius: 12px;
+      padding: 20px;
+      border-radius: 15px;
       background: rgba(255,255,255,0.05);
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       transition: all 0.3s ease;
     }
 
@@ -132,7 +124,7 @@
 
     .message-text {
       color: #fff;
-      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      font-size: 1.3rem;
       font-weight: bold;
     }
 
@@ -146,9 +138,9 @@
 
     .user-answer {
       text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       color: rgba(255,255,255,0.7);
-      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      font-size: 1rem;
       display: none;
     }
 
@@ -161,54 +153,41 @@
       font-weight: bold;
     }
 
-    /* 마이크 컨테이너 */
-    .mic-container {
-      display: flex;
+    .listening-indicator {
+      display: none;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
+      gap: 10px;
       margin-bottom: 20px;
     }
 
-    .mic-button {
-      width: clamp(80px, 20vw, 100px);
-      height: clamp(80px, 20vw, 100px);
+    .listening-indicator.show {
+      display: flex;
+    }
+
+    .mic-icon {
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      border: none;
-      cursor: pointer;
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(2rem, 6vw, 2.5rem);
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .mic-button.inactive {
-      background: rgba(255,255,255,0.1);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    }
-
-    .mic-button.ready {
-      background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%);
-      box-shadow: 0 0 20px rgba(46, 213, 115, 0.4);
-    }
-
-    .mic-button.listening {
-      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
-      box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
       animation: pulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+      font-size: 2rem;
     }
 
-    .mic-button.processing {
-      background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%);
-      box-shadow: 0 0 20px rgba(255, 165, 2, 0.4);
+    .listening-text {
+      color: #fff;
+      font-size: 1.1rem;
     }
 
-    .mic-status-text {
-      color: rgba(255,255,255,0.7);
-      font-size: clamp(0.8rem, 2.5vw, 0.95rem);
-      margin-top: 10px;
-      text-align: center;
+    .listening-hint {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      margin-top: 5px;
     }
 
     @keyframes pulse {
@@ -217,7 +196,7 @@
         box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
       }
       50% {
-        transform: scale(1.08);
+        transform: scale(1.1);
         box-shadow: 0 0 50px rgba(233, 69, 96, 0.8);
       }
     }
@@ -236,18 +215,17 @@
       display: block;
       margin-bottom: 10px;
       text-align: center;
-      font-size: clamp(0.85rem, 2.5vw, 1rem);
     }
 
     .dan-buttons {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
     }
 
     .dan-btn {
-      padding: clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 14px);
+      padding: 10px 16px;
       border-radius: 10px;
       border: none;
       background: rgba(255,255,255,0.1);
@@ -256,11 +234,10 @@
       font-weight: bold;
       transition: all 0.2s ease;
       font-family: 'Noto Sans KR', sans-serif;
-      font-size: clamp(0.8rem, 2.5vw, 0.95rem);
     }
 
-    .dan-btn:active {
-      transform: scale(0.95);
+    .dan-btn:hover {
+      transform: translateY(-2px);
     }
 
     .dan-btn.selected {
@@ -269,14 +246,14 @@
 
     .controls {
       display: flex;
-      gap: 12px;
+      gap: 15px;
       justify-content: center;
       flex-wrap: wrap;
     }
 
     .btn {
-      padding: clamp(12px, 3vw, 15px) clamp(30px, 8vw, 45px);
-      font-size: clamp(1rem, 3vw, 1.15rem);
+      padding: 15px 50px;
+      font-size: 1.2rem;
       font-weight: bold;
       border: none;
       border-radius: 50px;
@@ -285,22 +262,34 @@
       font-family: 'Noto Sans KR', sans-serif;
     }
 
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
     .btn:active {
-      transform: scale(0.96);
+      transform: translateY(0);
     }
 
     .btn-primary {
       background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
       color: #fff;
-      box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+      box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
     }
 
     .btn-secondary {
-      padding: clamp(10px, 2.5vw, 12px) clamp(20px, 5vw, 28px);
-      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      padding: 12px 30px;
+      font-size: 1rem;
       border: 2px solid rgba(255,255,255,0.3);
       background: transparent;
       color: #fff;
+    }
+
+    .btn-retry {
+      padding: 12px 25px;
+      font-size: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
 
     .btn.hide {
@@ -308,13 +297,13 @@
     }
 
     .history {
-      margin-top: 25px;
+      margin-top: 30px;
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(20px);
       border-radius: 20px;
-      padding: 20px;
+      padding: 25px;
       width: 100%;
-      max-width: 450px;
+      max-width: 500px;
       border: 1px solid rgba(255,255,255,0.1);
       display: none;
     }
@@ -325,24 +314,22 @@
 
     .history h3 {
       color: #fff;
-      margin-bottom: 12px;
+      margin-bottom: 15px;
       text-align: center;
-      font-size: clamp(1rem, 3vw, 1.2rem);
     }
 
     .history-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .history-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 12px;
+      padding: 10px 15px;
       border-radius: 10px;
-      font-size: clamp(0.85rem, 2.5vw, 1rem);
     }
 
     .history-item.correct {
@@ -380,13 +367,13 @@
     }
 
     .manual-input input {
-      padding: 12px 15px;
-      font-size: clamp(1rem, 3vw, 1.2rem);
+      padding: 12px 20px;
+      font-size: 1.2rem;
       border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 12px;
+      border-radius: 15px;
       background: rgba(255,255,255,0.1);
       color: #fff;
-      width: 100px;
+      width: 120px;
       text-align: center;
       font-family: 'Noto Sans KR', sans-serif;
     }
@@ -398,10 +385,10 @@
 
     .manual-input button {
       margin-left: 10px;
-      padding: 12px 18px;
-      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      padding: 12px 20px;
+      font-size: 1rem;
       border: none;
-      border-radius: 12px;
+      border-radius: 15px;
       background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
       color: #fff;
       cursor: pointer;
@@ -410,28 +397,31 @@
 
     .manual-label {
       color: rgba(255,255,255,0.6);
-      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      font-size: 0.85rem;
       margin-bottom: 10px;
     }
 
-    /* 모바일 대응 */
-    @media (max-width: 380px) {
-      .dan-buttons {
-        grid-template-columns: repeat(3, 1fr);
-      }
+    .mic-status {
+      text-align: center;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-bottom: 15px;
+      display: none;
     }
 
-    @media (min-height: 700px) {
-      .game-area {
-        padding: 30px;
-      }
+    .mic-status.show {
+      display: block;
     }
 
-    /* iOS Safari 대응 */
-    @supports (-webkit-touch-callout: none) {
-      body {
-        min-height: -webkit-fill-available;
-      }
+    .mic-status.ready {
+      background: rgba(46, 213, 115, 0.2);
+      color: #2ed573;
+    }
+
+    .mic-status.error {
+      background: rgba(255, 71, 87, 0.2);
+      color: #ff4757;
     }
   </style>
 </head>
@@ -453,6 +443,8 @@
   </div>
 
   <div class="game-area">
+    <div class="mic-status" id="micStatus"></div>
+
     <div class="question-display" id="questionDisplay">
       <div class="question-text" id="questionText">0 × 0</div>
     </div>
@@ -465,10 +457,10 @@
       들은 답변: <span id="userAnswer"></span>
     </div>
 
-    <!-- 마이크 버튼 -->
-    <div class="mic-container" id="micContainer">
-      <button class="mic-button inactive" id="micButton">🎤</button>
-      <div class="mic-status-text" id="micStatusText">게임을 시작하면 활성화됩니다</div>
+    <div class="listening-indicator" id="listeningIndicator">
+      <div class="mic-icon">🎤</div>
+      <span class="listening-text">듣고 있어요...</span>
+      <span class="listening-hint">크게 또박또박 말해주세요!</span>
     </div>
 
     <div class="dan-selection" id="danSelection">
@@ -488,6 +480,7 @@
 
     <div class="controls">
       <button class="btn btn-primary" id="startBtn">🎮 게임 시작</button>
+      <button class="btn btn-retry hide" id="retryBtn">🎤 다시 말하기</button>
       <button class="btn btn-secondary hide" id="stopBtn">⏹️ 그만하기</button>
       <button class="btn btn-primary hide" id="restartBtn">🔄 다시 하기</button>
     </div>
@@ -495,9 +488,11 @@
     <!-- 수동 입력 옵션 -->
     <div class="manual-input" id="manualInput">
       <div class="manual-label">음성이 안 되면 직접 입력하세요</div>
-      <input type="number" inputmode="numeric" pattern="[0-9]*" id="manualAnswer" placeholder="답">
+      <input type="number" id="manualAnswer" placeholder="답">
       <button id="submitManual">확인</button>
     </div>
+
+
   </div>
 
   <div class="history" id="history">
@@ -506,19 +501,15 @@
   </div>
 
   <script>
-    // 디바이스 감지
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log('디바이스:', isMobile ? '모바일' : 'PC');
-
-    // 한글 숫자 -> 아라비아 숫자 변환
+    // 한글 숫자 -> 아라비아 숫자 변환 맵
     const koreanNumbers = {
-      '영': 0, '공': 0, '빵': 0, '령': 0,
-      '일': 1, '하나': 1, '한': 1,
-      '이': 2, '둘': 2, '두': 2,
-      '삼': 3, '셋': 3, '세': 3, '석': 3,
+      '영': 0, '공': 0, '빵': 0,
+      '일': 1, '하나': 1,
+      '이': 2, '둘': 2,
+      '삼': 3, '셋': 3, '세': 3,
       '사': 4, '넷': 4, '네': 4,
       '오': 5, '다섯': 5,
-      '육': 6, '여섯': 6, '륙': 6,
+      '육': 6, '여섯': 6,
       '칠': 7, '일곱': 7,
       '팔': 8, '여덟': 8,
       '구': 9, '아홉': 9,
@@ -526,72 +517,45 @@
       '백': 100
     };
 
-    const soundAlikeNumbers = {
-      '사십': 40, '오십': 50, '육십': 60, '칠십': 70, '팔십': 80, '구십': 90,
-      '이십': 20, '삼십': 30,
-      '사이': 4, '다시': 5, '여시': 6,
-      '12': 12, '24': 24, '36': 36, '48': 48,
-      '서른여섯': 36, '마흔여덟': 48, '쉰넷': 54,
-      '예순삼': 63, '일흔둘': 72, '여든하나': 81
-    };
-
+    // 한글 숫자 문자열을 숫자로 변환
     function koreanToNumber(str) {
-      str = str.trim().replace(/[.,!?]/g, '');
-      
+      // 먼저 아라비아 숫자가 있는지 확인
       const arabicMatch = str.match(/\d+/);
       if (arabicMatch) {
         return parseInt(arabicMatch[0]);
       }
 
-      for (const [word, value] of Object.entries(soundAlikeNumbers)) {
-        if (str.includes(word)) {
-          return value;
-        }
-      }
-
+      // 간단한 한글 숫자 처리 (1-99 범위)
       let result = 0;
-      let original = str.replace(/\s/g, '');
       
+      // 공백 제거하고 처리
+      str = str.replace(/\s/g, '');
+      
+      // "스물", "서른" 등의 특수 표현
       const specialTens = {
         '스물': 20, '스무': 20,
         '서른': 30,
         '마흔': 40,
-        '쉰': 50, '쉽': 50,
+        '쉰': 50,
         '예순': 60,
         '일흔': 70,
         '여든': 80,
         '아흔': 90
       };
 
+      // 특수 표현 먼저 처리
       for (const [word, value] of Object.entries(specialTens)) {
-        if (original.includes(word)) {
+        if (str.includes(word)) {
           result += value;
-          original = original.replace(word, '');
+          str = str.replace(word, '');
         }
       }
 
-      const tenPatterns = [
-        { pattern: '이십', value: 20 },
-        { pattern: '삼십', value: 30 },
-        { pattern: '사십', value: 40 },
-        { pattern: '오십', value: 50 },
-        { pattern: '육십', value: 60 },
-        { pattern: '칠십', value: 70 },
-        { pattern: '팔십', value: 80 },
-        { pattern: '구십', value: 90 }
-      ];
-
-      for (const { pattern, value } of tenPatterns) {
-        if (original.includes(pattern)) {
-          result += value;
-          original = original.replace(pattern, '');
-        }
-      }
-
-      if (original.includes('십') || original.includes('열')) {
-        const tenIdx = original.indexOf('십') !== -1 ? original.indexOf('십') : original.indexOf('열');
-        const beforeTen = original.substring(0, tenIdx);
-        const afterTen = original.substring(tenIdx + 1);
+      // "십" 단위 처리
+      if (str.includes('십') || str.includes('열')) {
+        const tenIdx = str.indexOf('십') !== -1 ? str.indexOf('십') : str.indexOf('열');
+        const beforeTen = str.substring(0, tenIdx);
+        const afterTen = str.substring(tenIdx + 1);
         
         let tens = 1;
         for (const [word, value] of Object.entries(koreanNumbers)) {
@@ -600,19 +564,19 @@
             break;
           }
         }
-        if (result === 0) {
-          result += tens * 10;
-        }
-        original = afterTen;
+        result += tens * 10;
+        str = afterTen;
       }
 
+      // 일의 자리 처리
       for (const [word, value] of Object.entries(koreanNumbers)) {
-        if (original.includes(word) && value >= 1 && value <= 9) {
+        if (str.includes(word) && value >= 1 && value <= 9) {
           result += value;
           break;
         }
       }
 
+      // 단순 한글 숫자 (일, 이, 삼... 또는 하나, 둘, 셋...)
       if (result === 0) {
         for (const [word, value] of Object.entries(koreanNumbers)) {
           if (str.includes(word)) {
@@ -633,10 +597,9 @@
     let history = [];
     let recognition = null;
     let retryCount = 0;
-    let audioContext = null;
-    let micStream = null;
+    let micStream = null; // 마이크 스트림 유지
+    let isRecognitionActive = false;
     let waitingForAnswer = false;
-    let isRecording = false;
     const synth = window.speechSynthesis;
 
     // DOM Elements
@@ -646,13 +609,12 @@
     const messageText = document.getElementById('messageText');
     const userAnswerBox = document.getElementById('userAnswerBox');
     const userAnswer = document.getElementById('userAnswer');
-    const micContainer = document.getElementById('micContainer');
-    const micButton = document.getElementById('micButton');
-    const micStatusText = document.getElementById('micStatusText');
+    const listeningIndicator = document.getElementById('listeningIndicator');
     const danSelection = document.getElementById('danSelection');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const restartBtn = document.getElementById('restartBtn');
+    const retryBtn = document.getElementById('retryBtn');
     const scoreEl = document.getElementById('score');
     const currentQEl = document.getElementById('currentQ');
     const historyEl = document.getElementById('history');
@@ -661,268 +623,127 @@
     const manualInput = document.getElementById('manualInput');
     const manualAnswer = document.getElementById('manualAnswer');
     const submitManual = document.getElementById('submitManual');
+    const micStatus = document.getElementById('micStatus');
 
-    // 오디오 컨텍스트 생성 (마이크 권한 유지용)
-    async function initAudio() {
-      console.log('🔧 initAudio 시작');
+    // 마이크 권한 요청 및 스트림 유지
+    async function initMicrophone() {
       try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log(`AudioContext 상태: ${audioContext.state}`);
-        
-        micStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            channelCount: 1,
-            sampleRate: 48000,
-            sampleSize: 16
-          } 
-        });
-        
-        console.log(`✅ 마이크 스트림 획득 (active: ${micStream.active})`);
-        
-        const source = audioContext.createMediaStreamSource(micStream);
-        
-        micButton.className = 'mic-button ready';
-        
-        if (isMobile) {
-          micStatusText.textContent = '마이크 버튼을 눌러 녹음하세요';
-        } else {
-          micStatusText.textContent = '마이크 준비 완료';
-        }
-        
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStatus.textContent = '🎤 마이크 준비 완료';
+        micStatus.className = 'mic-status show ready';
         initRecognition();
-        
         return true;
       } catch (err) {
-        console.error(`❌ 마이크 초기화 실패: ${err.message}`);
-        micButton.className = 'mic-button inactive';
-        micStatusText.textContent = '마이크 권한이 필요합니다';
+        console.error('마이크 권한 오류:', err);
+        micStatus.textContent = '❌ 마이크 권한이 필요합니다';
+        micStatus.className = 'mic-status show error';
         manualInput.classList.add('show');
         return false;
       }
     }
 
-    // Speech Recognition 초기화
+    // Initialize Speech Recognition (한 번만)
     function initRecognition() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        micStatusText.textContent = '음성인식 미지원 브라우저';
-        console.log('❌ SpeechRecognition 미지원');
-        manualInput.classList.add('show');
+        micStatus.textContent = '❌ 이 브라우저는 음성인식을 지원하지 않습니다';
+        micStatus.className = 'mic-status show error';
         return;
       }
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
       recognition.lang = 'ko-KR';
-      
-      // PC는 continuous, 모바일은 한번만
-      if (isMobile) {
-        recognition.continuous = false;
-        recognition.interimResults = false;
-      } else {
-        recognition.continuous = true;
-        recognition.interimResults = true;
-      }
-      
-      recognition.maxAlternatives = 5;
-      
-      console.log('✅ Recognition 객체 생성됨 (continuous:', recognition.continuous, ')');
-
-      let lastTranscript = '';
-      let silenceTimer = null;
-
-      recognition.onstart = () => {
-        console.log('🎙️ 음성인식 시작됨');
-        isRecording = true;
-      };
+      recognition.continuous = true; // 연속 인식 모드
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 3;
 
       recognition.onresult = (event) => {
-        console.log(`📝 onresult 호출 (waitingForAnswer: ${waitingForAnswer})`);
-        
-        if (!waitingForAnswer) {
-          console.log('⚠️ waitingForAnswer=false, 무시됨');
-          return;
+        if (!waitingForAnswer) return;
+
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          }
         }
 
-        let transcript = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript = event.results[i][0].transcript;
-          const isFinal = event.results[i].isFinal;
-          const confidence = event.results[i][0].confidence;
-          
-          console.log(`결과[${i}]: "${transcript}" (final:${isFinal}, conf:${confidence?.toFixed(2)})`);
-          
-          if (isFinal) {
-            waitingForAnswer = false;
-            clearTimeout(silenceTimer);
-            processAnswer(transcript);
-            
-            // 모바일은 여기서 recognition 중지
-            if (isMobile) {
-              recognition.stop();
-            }
-            return;
-          }
-        }
-        
-        // PC 전용: 중간 결과 처리
-        if (!isMobile && transcript && transcript !== lastTranscript) {
-          lastTranscript = transcript;
-          const potentialAnswer = koreanToNumber(transcript);
-          console.log(`중간결과: "${transcript}" → 숫자: ${potentialAnswer}`);
-          
-          if (potentialAnswer !== null) {
-            clearTimeout(silenceTimer);
-            silenceTimer = setTimeout(() => {
-              if (waitingForAnswer) {
-                waitingForAnswer = false;
-                processAnswer(transcript);
-              }
-            }, 800);
-          }
+        // 최종 결과 처리
+        if (finalTranscript && waitingForAnswer) {
+          waitingForAnswer = false;
+          listeningIndicator.classList.remove('show');
+          processAnswer(finalTranscript);
         }
       };
 
       recognition.onerror = (event) => {
-        console.log(`❌ 에러: ${event.error}`);
-        isRecording = false;
+        console.log('Recognition error:', event.error);
         
         if (event.error === 'not-allowed') {
-          micButton.className = 'mic-button inactive';
-          micStatusText.textContent = '마이크 권한을 허용해주세요';
+          micStatus.textContent = '❌ 마이크 권한을 허용해주세요';
+          micStatus.className = 'mic-status show error';
           manualInput.classList.add('show');
-        } else if (event.error === 'no-speech') {
-          console.log('⚠️ 음성 없음 감지');
-          if (isMobile && waitingForAnswer) {
-            handleNoSpeech();
-          }
+        } else if (event.error === 'no-speech' && waitingForAnswer) {
+          // 음성이 없으면 계속 대기
+          handleNoSpeech();
         }
       };
 
       recognition.onend = () => {
-        console.log(`🔴 Recognition 종료 (gameState: ${gameState}, isMobile: ${isMobile}, isRecording: ${isRecording})`);
-        isRecording = false;
-        
-        // 모바일: 버튼으로 제어하므로 자동 재시작 절대 안 함
-        if (isMobile) {
-          console.log('📱 모바일: 자동 재시작 안 함');
-          if (waitingForAnswer) {
-            updateMicStatus(false);
-          }
-          return;
-        }
-        
-        // PC: 게임 중이면 자동 재시작
-        if (gameState === 'playing' && micStream && micStream.active && waitingForAnswer) {
-          setTimeout(() => {
-            try {
-              if (waitingForAnswer) { // 다시 한번 체크
-                recognition.start();
-                console.log('🔄 Recognition 재시작 (PC)');
-              }
-            } catch (e) {
-              console.log(`⚠️ 재시작 실패: ${e.message}`);
-            }
-          }, 100);
+        isRecognitionActive = false;
+        // 게임 중이면 자동으로 다시 시작
+        if (gameState === 'playing' || gameState === 'listening') {
+          startRecognition();
         }
       };
     }
 
-    // 음성 인식 시작
+    // 음성 인식 시작 (권한 요청 없이)
     function startRecognition() {
-      console.log(`🚀 startRecognition 호출 (isMobile: ${isMobile}, isRecording: ${isRecording})`);
-      if (!recognition) {
-        console.log('❌ recognition 객체 없음!');
-        return;
-      }
+      if (!recognition || isRecognitionActive) return;
       
-      // 이미 녹음 중이면 중지하고 재시작
-      if (isRecording) {
-        console.log('⚠️ 이미 녹음 중 - 중지 후 재시작');
-        try {
-          recognition.stop();
-        } catch (e) {
-          console.log('중지 실패:', e.message);
-        }
-        // 잠시 대기 후 시작
-        setTimeout(() => {
-          startRecognitionInternal();
-        }, 200);
-      } else {
-        startRecognitionInternal();
-      }
-    }
-
-    function startRecognitionInternal() {
       try {
         recognition.start();
-        console.log('✅ recognition.start() 호출됨');
-        isRecording = true;
-        updateMicStatus(true);
+        isRecognitionActive = true;
       } catch (e) {
-        console.log(`⚠️ start 에러: ${e.message}`);
-        if (e.message.includes('already started')) {
-          console.log('이미 시작됨 - 상태만 업데이트');
-          isRecording = true;
-          updateMicStatus(true);
-        }
+        console.log('Recognition already started');
       }
     }
 
     // 음성 인식 중지
     function stopRecognition() {
-      if (recognition && isRecording) {
+      if (recognition && isRecognitionActive) {
         try {
           recognition.stop();
-          console.log('🛑 recognition.stop() 호출됨');
-          isRecording = false;
-        } catch (e) {}
+          isRecognitionActive = false;
+        } catch (e) {
+          console.log('Recognition stop error:', e);
+        }
       }
     }
 
-    // TTS
+    // Speak function
     function speak(text, onEnd) {
       synth.cancel();
-      
-      // PC는 TTS 중 음성인식 중지
-      if (!isMobile) {
-        stopRecognition();
-      }
-      
-      console.log(`🔊 TTS 시작: "${text}"`);
-      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ko-KR';
       utterance.rate = 0.9;
       utterance.pitch = 1;
-      
-      utterance.onend = () => {
-        console.log('🔊 TTS 완료');
-        
-        // PC는 TTS 끝나면 자동으로 음성인식 재시작
-        if (!isMobile && (gameState === 'playing' || gameState === 'listening')) {
-          setTimeout(() => {
-            console.log('🎯 TTS 후 recognition 시작 (PC)');
-            startRecognition();
-          }, 500);
-        }
-        
-        if (onEnd) onEnd();
-      };
-      
+      if (onEnd) {
+        utterance.onend = onEnd;
+      }
       synth.speak(utterance);
     }
 
-    // 문제 생성
+    // Generate question
     function generateQuestion() {
       const dan = selectedDan === 0 ? Math.floor(Math.random() * 8) + 2 : selectedDan;
       const num = Math.floor(Math.random() * 9) + 1;
       return { dan, num, answer: dan * num };
     }
 
+    // Update UI
     function updateScore() {
       scoreEl.textContent = score;
       currentQEl.textContent = totalQuestions;
@@ -933,65 +754,24 @@
       messageBox.className = 'message-box' + (state ? ' ' + state : '');
     }
 
-    function updateMicStatus(isListening) {
-      if (isListening) {
-        micButton.className = 'mic-button listening';
-        if (isMobile) {
-          micStatusText.textContent = '녹음 중... (다시 누르면 중지)';
-        } else {
-          micStatusText.textContent = '듣고 있어요... 크게 말해주세요!';
-        }
-      } else if (micStream && micStream.active) {
-        micButton.className = 'mic-button ready';
-        if (isMobile) {
-          micStatusText.textContent = '마이크 버튼을 눌러 녹음하세요';
-        } else {
-          micStatusText.textContent = '마이크 준비됨';
-        }
-      } else {
-        micButton.className = 'mic-button inactive';
-        micStatusText.textContent = '마이크 비활성화';
-      }
-    }
-
-    // 답변 대기 시작
-    let answerTimeout = null;
-    
+    // Start listening for answer
     function startListening() {
-      console.log(`🎯 startListening 호출`);
+      listeningIndicator.classList.add('show');
+      retryBtn.classList.add('hide');
+      manualInput.classList.remove('show');
       gameState = 'listening';
       waitingForAnswer = true;
-      manualInput.classList.remove('show');
-      
-      // PC는 자동으로 음성인식 시작
-      if (!isMobile) {
-        updateMicStatus(true);
-        // PC는 즉시 타임아웃 시작 (5초)
-        answerTimeout = setTimeout(() => {
-          if (waitingForAnswer) {
-            console.log('⏰ PC 5초 타임아웃');
-            handleNoSpeech();
-          }
-        }, 5000);
-      } else {
-        // 모바일은 버튼 누르면 시작 (타임아웃도 버튼 누른 후 시작)
-        updateMicStatus(false);
-      }
+
+      // 5초 후 타임아웃
+      setTimeout(() => {
+        if (waitingForAnswer) {
+          handleNoSpeech();
+        }
+      }, 6000);
     }
 
     function processAnswer(transcript) {
-      console.log(`✅ processAnswer: "${transcript}"`);
-      
-      // 타임아웃 클리어
-      if (answerTimeout) {
-        clearTimeout(answerTimeout);
-        answerTimeout = null;
-      }
-      
-      updateMicStatus(false);
-      
       const answer = koreanToNumber(transcript);
-      console.log(`변환 결과: ${answer}`);
 
       userAnswer.textContent = transcript + (answer !== null ? ` (${answer})` : '');
       userAnswerBox.classList.add('show');
@@ -1004,55 +784,27 @@
     }
 
     function handleNoSpeech() {
-      // 타임아웃 클리어
-      if (answerTimeout) {
-        clearTimeout(answerTimeout);
-        answerTimeout = null;
-      }
-      
       waitingForAnswer = false;
-      updateMicStatus(false);
+      listeningIndicator.classList.remove('show');
       retryCount++;
       
       if (retryCount >= 3) {
         setMessage('음성 인식이 어려워요. 직접 입력해주세요!');
         manualInput.classList.add('show');
+        retryBtn.classList.remove('hide');
       } else {
         setMessage('잘 못 들었어요. 다시 말해주세요!');
-        speak('다시 한번 말해주세요!', () => {
-          setTimeout(() => {
-            waitingForAnswer = true;
-            gameState = 'listening';
-            
-            // PC는 자동 재시작, 모바일은 버튼 대기
-            if (!isMobile) {
-              updateMicStatus(true);
-              // PC는 다시 타임아웃 시작 (5초)
-              answerTimeout = setTimeout(() => {
-                if (waitingForAnswer) {
-                  console.log('⏰ PC 재시도 타임아웃');
-                  handleNoSpeech();
-                }
-              }, 5000);
-            } else {
-              updateMicStatus(false);
-              // 모바일은 버튼 누를 때까지 대기
-            }
-          }, 500);
-        });
+        retryBtn.classList.remove('hide');
+        speak('다시 한번 말해주세요!');
       }
     }
 
+    // Check answer
     function checkAnswer(answer) {
       if (!currentQuestion) return;
 
-      // 타임아웃 클리어
-      if (answerTimeout) {
-        clearTimeout(answerTimeout);
-        answerTimeout = null;
-      }
-
       retryCount = 0;
+      retryBtn.classList.add('hide');
       manualInput.classList.remove('show');
 
       const isCorrect = answer === currentQuestion.answer;
@@ -1075,12 +827,13 @@
       } else {
         gameState = 'wrong';
         setMessage(`틀렸어요! 정답은 ${currentQuestion.answer}이에요`, 'wrong');
-        speak(`틀렸어요. 정답은 ${currentQuestion.answer}입니다.`, () => {
+        speak(`땡! 틀렸어요. 정답은 ${currentQuestion.answer}입니다.`, () => {
           setTimeout(nextQuestion, 1500);
         });
       }
     }
 
+    // Next question
     function nextQuestion() {
       if (totalQuestions >= 10) {
         finishGame();
@@ -1106,21 +859,16 @@
       });
     }
 
+    // Finish game
     function finishGame() {
       gameState = 'finished';
       waitingForAnswer = false;
-      
-      // 타임아웃 클리어
-      if (answerTimeout) {
-        clearTimeout(answerTimeout);
-        answerTimeout = null;
-      }
-      
       stopRecognition();
       
       questionDisplay.classList.remove('show');
       manualInput.classList.remove('show');
-      updateMicStatus(false);
+      retryBtn.classList.add('hide');
+      listeningIndicator.classList.remove('show');
       setMessage(`게임 끝! ${score}점을 받았어요!`);
       speak(`게임이 끝났습니다. 열 문제 중 ${score}개를 맞혔어요!`);
 
@@ -1128,15 +876,8 @@
       stopBtn.classList.add('hide');
       restartBtn.classList.remove('hide');
       danSelection.classList.remove('hide');
-      
-      // 마이크 스트림은 유지 (권한 유지)
-      if (micStream && micStream.active) {
-        micStatusText.textContent = '게임 종료 - 다시하기를 누르세요';
-      } else {
-        micStatusText.textContent = '게임이 종료되었습니다';
-      }
 
-      // 결과 표시
+      // Show history
       historyList.innerHTML = '';
       history.forEach(item => {
         const div = document.createElement('div');
@@ -1152,18 +893,14 @@
       historyEl.classList.add('show');
     }
 
+    // Start game
     async function startGame() {
-      // 첫 시작시 오디오 초기화
+      // 처음 시작시 마이크 권한 요청
       if (!micStream) {
-        const success = await initAudio();
-        if (!success) {
-          // 마이크 없어도 수동 입력으로 진행 가능
+        const hasPermission = await initMicrophone();
+        if (!hasPermission) {
+          // 권한 없어도 수동 입력으로 게임 가능
         }
-      }
-
-      // AudioContext resume (모바일 대응)
-      if (audioContext && audioContext.state === 'suspended') {
-        await audioContext.resume();
       }
 
       score = 0;
@@ -1182,21 +919,18 @@
 
       gameState = 'playing';
       
+      // 음성 인식 시작
+      startRecognition();
+      
       speak('구구단 게임을 시작합니다!', () => {
         setTimeout(nextQuestion, 500);
       });
     }
 
+    // Reset game
     function resetGame() {
       synth.cancel();
       waitingForAnswer = false;
-      
-      // 타임아웃 클리어
-      if (answerTimeout) {
-        clearTimeout(answerTimeout);
-        answerTimeout = null;
-      }
-      
       stopRecognition();
 
       gameState = 'ready';
@@ -1209,95 +943,28 @@
 
       questionDisplay.classList.remove('show');
       userAnswerBox.classList.remove('show');
+      listeningIndicator.classList.remove('show');
       historyEl.classList.remove('show');
       manualInput.classList.remove('show');
       setMessage('시작 버튼을 눌러주세요!');
-      
-      // 마이크 스트림은 유지 (권한 유지)
-      if (micStream && micStream.active) {
-        micButton.className = 'mic-button ready';
-        if (isMobile) {
-          micStatusText.textContent = '마이크 버튼을 눌러 녹음하세요';
-        } else {
-          micStatusText.textContent = '마이크 준비됨';
-        }
-      } else {
-        micButton.className = 'mic-button inactive';
-        micStatusText.textContent = '게임을 시작하면 활성화됩니다';
-      }
 
       startBtn.classList.remove('hide');
       stopBtn.classList.add('hide');
       restartBtn.classList.add('hide');
+      retryBtn.classList.add('hide');
       danSelection.classList.remove('hide');
     }
-
-    // 마이크 버튼 클릭
-    micButton.addEventListener('click', () => {
-      if (gameState !== 'playing' && gameState !== 'listening') {
-        return;
-      }
-
-      if (isMobile) {
-        // 모바일: 버튼 눌러서 녹음 시작/중지
-        if (isRecording) {
-          // 녹음 중이면 중지
-          stopRecognition();
-          updateMicStatus(false);
-          
-          // 타임아웃 클리어
-          if (answerTimeout) {
-            clearTimeout(answerTimeout);
-            answerTimeout = null;
-          }
-        } else {
-          // 녹음 시작
-          if (waitingForAnswer) {
-            console.log('📱 모바일: 녹음 시작 시도');
-            startRecognition();
-            
-            // 모바일: 버튼 누른 시점부터 타임아웃 시작 (5초)
-            answerTimeout = setTimeout(() => {
-              if (waitingForAnswer && isRecording) {
-                console.log('⏰ 모바일 5초 타임아웃');
-                stopRecognition();
-                handleNoSpeech();
-              }
-            }, 5000);
-          }
-        }
-      } else {
-        // PC: 다시 듣기
-        retryCount = 0;
-        manualInput.classList.remove('show');
-        
-        // 기존 타임아웃 클리어
-        if (answerTimeout) {
-          clearTimeout(answerTimeout);
-          answerTimeout = null;
-        }
-        
-        waitingForAnswer = false;
-        
-        setTimeout(() => {
-          waitingForAnswer = true;
-          updateMicStatus(true);
-          
-          // 새 타임아웃 시작 (5초)
-          answerTimeout = setTimeout(() => {
-            if (waitingForAnswer) {
-              console.log('⏰ PC 다시듣기 타임아웃');
-              handleNoSpeech();
-            }
-          }, 5000);
-        }, 300);
-      }
-    });
 
     // Event listeners
     startBtn.addEventListener('click', startGame);
     stopBtn.addEventListener('click', resetGame);
     restartBtn.addEventListener('click', startGame);
+    
+    retryBtn.addEventListener('click', () => {
+      retryCount = 0;
+      manualInput.classList.remove('show');
+      startListening();
+    });
 
     submitManual.addEventListener('click', () => {
       const value = parseInt(manualAnswer.value);
@@ -1306,7 +973,7 @@
         userAnswer.textContent = value;
         userAnswerBox.classList.add('show');
         waitingForAnswer = false;
-        updateMicStatus(false);
+        listeningIndicator.classList.remove('show');
         checkAnswer(value);
       }
     });
@@ -1323,25 +990,6 @@
         btn.classList.add('selected');
         selectedDan = parseInt(btn.dataset.dan);
       });
-    });
-
-    // 페이지 visibility 변경 시 처리
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stopRecognition();
-      } else if (!isMobile && (gameState === 'playing' || gameState === 'listening')) {
-        startRecognition();
-      }
-    });
-
-    // 페이지 종료 시 스트림 정리 (브라우저 종료/탭 닫기)
-    window.addEventListener('beforeunload', () => {
-      if (micStream) {
-        micStream.getTracks().forEach(track => track.stop());
-      }
-      if (audioContext) {
-        audioContext.close();
-      }
     });
   </script>
 </body>
