@@ -803,11 +803,12 @@
       };
 
       recognition.onend = () => {
-        console.log(`🔴 Recognition 종료 (gameState: ${gameState}, isMobile: ${isMobile})`);
+        console.log(`🔴 Recognition 종료 (gameState: ${gameState}, isMobile: ${isMobile}, isRecording: ${isRecording})`);
         isRecording = false;
         
-        // 모바일: 버튼으로 제어하므로 자동 재시작 안 함
+        // 모바일: 버튼으로 제어하므로 자동 재시작 절대 안 함
         if (isMobile) {
+          console.log('📱 모바일: 자동 재시작 안 함');
           if (waitingForAnswer) {
             updateMicStatus(false);
           }
@@ -815,11 +816,13 @@
         }
         
         // PC: 게임 중이면 자동 재시작
-        if (gameState === 'playing' && micStream && micStream.active) {
+        if (gameState === 'playing' && micStream && micStream.active && waitingForAnswer) {
           setTimeout(() => {
             try {
-              recognition.start();
-              console.log('🔄 Recognition 재시작 (PC)');
+              if (waitingForAnswer) { // 다시 한번 체크
+                recognition.start();
+                console.log('🔄 Recognition 재시작 (PC)');
+              }
             } catch (e) {
               console.log(`⚠️ 재시작 실패: ${e.message}`);
             }
@@ -830,12 +833,30 @@
 
     // 음성 인식 시작
     function startRecognition() {
-      console.log(`🚀 startRecognition 호출`);
+      console.log(`🚀 startRecognition 호출 (isMobile: ${isMobile}, isRecording: ${isRecording})`);
       if (!recognition) {
         console.log('❌ recognition 객체 없음!');
         return;
       }
       
+      // 이미 녹음 중이면 중지하고 재시작
+      if (isRecording) {
+        console.log('⚠️ 이미 녹음 중 - 중지 후 재시작');
+        try {
+          recognition.stop();
+        } catch (e) {
+          console.log('중지 실패:', e.message);
+        }
+        // 잠시 대기 후 시작
+        setTimeout(() => {
+          startRecognitionInternal();
+        }, 200);
+      } else {
+        startRecognitionInternal();
+      }
+    }
+
+    function startRecognitionInternal() {
       try {
         recognition.start();
         console.log('✅ recognition.start() 호출됨');
@@ -843,6 +864,11 @@
         updateMicStatus(true);
       } catch (e) {
         console.log(`⚠️ start 에러: ${e.message}`);
+        if (e.message.includes('already started')) {
+          console.log('이미 시작됨 - 상태만 업데이트');
+          isRecording = true;
+          updateMicStatus(true);
+        }
       }
     }
 
@@ -940,13 +966,13 @@
       // PC는 자동으로 음성인식 시작
       if (!isMobile) {
         updateMicStatus(true);
-        // PC는 즉시 타임아웃 시작 (10초)
+        // PC는 즉시 타임아웃 시작 (5초)
         answerTimeout = setTimeout(() => {
           if (waitingForAnswer) {
-            console.log('⏰ PC 10초 타임아웃');
+            console.log('⏰ PC 5초 타임아웃');
             handleNoSpeech();
           }
-        }, 10000);
+        }, 5000);
       } else {
         // 모바일은 버튼 누르면 시작 (타임아웃도 버튼 누른 후 시작)
         updateMicStatus(false);
@@ -1001,13 +1027,13 @@
             // PC는 자동 재시작, 모바일은 버튼 대기
             if (!isMobile) {
               updateMicStatus(true);
-              // PC는 다시 타임아웃 시작
+              // PC는 다시 타임아웃 시작 (5초)
               answerTimeout = setTimeout(() => {
                 if (waitingForAnswer) {
                   console.log('⏰ PC 재시도 타임아웃');
                   handleNoSpeech();
                 }
-              }, 10000);
+              }, 5000);
             } else {
               updateMicStatus(false);
               // 모바일은 버튼 누를 때까지 대기
@@ -1227,16 +1253,17 @@
         } else {
           // 녹음 시작
           if (waitingForAnswer) {
+            console.log('📱 모바일: 녹음 시작 시도');
             startRecognition();
             
-            // 모바일: 버튼 누른 시점부터 타임아웃 시작 (15초)
+            // 모바일: 버튼 누른 시점부터 타임아웃 시작 (5초)
             answerTimeout = setTimeout(() => {
               if (waitingForAnswer && isRecording) {
-                console.log('⏰ 모바일 15초 타임아웃');
+                console.log('⏰ 모바일 5초 타임아웃');
                 stopRecognition();
                 handleNoSpeech();
               }
-            }, 15000);
+            }, 5000);
           }
         }
       } else {
@@ -1256,13 +1283,13 @@
           waitingForAnswer = true;
           updateMicStatus(true);
           
-          // 새 타임아웃 시작
+          // 새 타임아웃 시작 (5초)
           answerTimeout = setTimeout(() => {
             if (waitingForAnswer) {
               console.log('⏰ PC 다시듣기 타임아웃');
               handleNoSpeech();
             }
-          }, 10000);
+          }, 5000);
         }, 300);
       }
     });
