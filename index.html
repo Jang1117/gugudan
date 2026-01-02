@@ -879,26 +879,30 @@
       utterance.rate = 0.9;
       utterance.pitch = 1;
       
+      // onend 이벤트 (안드로이드에서 안 될 수 있음)
       utterance.onend = () => {
-        log('🔊 TTS 완료');
-        isSpeaking = false;
-        
-        // TTS 끝나고 잠시 후 음성인식 재시작
-        setTimeout(() => {
-          if (gameState === 'playing' || gameState === 'listening') {
-            startRecognition();
-          }
-          if (onEnd) onEnd();
-        }, 300);
-      };
-      
-      utterance.onerror = (e) => {
-        log(`❌ TTS 에러: ${e.error}`);
-        isSpeaking = false;
-        if (onEnd) onEnd();
+        log('🔊 TTS onend 이벤트');
       };
       
       synth.speak(utterance);
+      
+      // 안드로이드용: polling으로 TTS 완료 감지
+      const checkTTS = setInterval(() => {
+        if (!synth.speaking) {
+          clearInterval(checkTTS);
+          log('🔊 TTS 완료 (polling 감지)');
+          isSpeaking = false;
+          
+          // TTS 끝나고 음성인식 시작
+          setTimeout(() => {
+            if (gameState === 'playing' || gameState === 'listening') {
+              log('🎯 TTS 후 recognition 시작');
+              startRecognition();
+            }
+            if (onEnd) onEnd();
+          }, 500);
+        }
+      }, 100);
     }
 
     // 문제 생성
