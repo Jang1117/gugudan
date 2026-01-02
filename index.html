@@ -161,7 +161,7 @@
       font-weight: bold;
     }
 
-    /* 마이크 인디케이터 - 항상 표시 */
+    /* 마이크 컨테이너 */
     .mic-container {
       display: flex;
       flex-direction: column;
@@ -170,15 +170,15 @@
     }
 
     .mic-button {
-      width: clamp(70px, 18vw, 90px);
-      height: clamp(70px, 18vw, 90px);
+      width: clamp(80px, 20vw, 100px);
+      height: clamp(80px, 20vw, 100px);
       border-radius: 50%;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(1.8rem, 5vw, 2.2rem);
+      font-size: clamp(2rem, 6vw, 2.5rem);
       transition: all 0.3s ease;
       position: relative;
     }
@@ -188,15 +188,20 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.2);
     }
 
+    .mic-button.ready {
+      background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%);
+      box-shadow: 0 0 20px rgba(46, 213, 115, 0.4);
+    }
+
     .mic-button.listening {
       background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
       box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
       animation: pulse 1.5s ease-in-out infinite;
     }
 
-    .mic-button.ready {
-      background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%);
-      box-shadow: 0 0 20px rgba(46, 213, 115, 0.4);
+    .mic-button.processing {
+      background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%);
+      box-shadow: 0 0 20px rgba(255, 165, 2, 0.4);
     }
 
     .mic-status-text {
@@ -456,14 +461,11 @@
       <p class="message-text" id="messageText">시작 버튼을 눌러주세요!</p>
     </div>
 
-    <!-- 디버그 로그 -->
-    <div id="debugLog" style="background: rgba(0,0,0,0.8); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 8px; margin-bottom: 15px; max-height: 120px; overflow-y: auto; text-align: left;"></div>
-
     <div class="user-answer" id="userAnswerBox">
       들은 답변: <span id="userAnswer"></span>
     </div>
 
-    <!-- 마이크 버튼 항상 표시 -->
+    <!-- 마이크 버튼 -->
     <div class="mic-container" id="micContainer">
       <button class="mic-button inactive" id="micButton">🎤</button>
       <div class="mic-status-text" id="micStatusText">게임을 시작하면 활성화됩니다</div>
@@ -504,7 +506,11 @@
   </div>
 
   <script>
-    // 한글 숫자 -> 아라비아 숫자 변환 (확장)
+    // 디바이스 감지
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('디바이스:', isMobile ? '모바일' : 'PC');
+
+    // 한글 숫자 -> 아라비아 숫자 변환
     const koreanNumbers = {
       '영': 0, '공': 0, '빵': 0, '령': 0,
       '일': 1, '하나': 1, '한': 1,
@@ -520,9 +526,7 @@
       '백': 100
     };
 
-    // 발음 유사 숫자 매핑 (음성 인식 오류 보정)
     const soundAlikeNumbers = {
-      // 비슷하게 들릴 수 있는 단어들
       '사십': 40, '오십': 50, '육십': 60, '칠십': 70, '팔십': 80, '구십': 90,
       '이십': 20, '삼십': 30,
       '사이': 4, '다시': 5, '여시': 6,
@@ -532,16 +536,13 @@
     };
 
     function koreanToNumber(str) {
-      // 공백 및 특수문자 정리
       str = str.trim().replace(/[.,!?]/g, '');
       
-      // 아라비아 숫자 우선 확인
       const arabicMatch = str.match(/\d+/);
       if (arabicMatch) {
         return parseInt(arabicMatch[0]);
       }
 
-      // 발음 유사 단어 먼저 체크
       for (const [word, value] of Object.entries(soundAlikeNumbers)) {
         if (str.includes(word)) {
           return value;
@@ -551,7 +552,6 @@
       let result = 0;
       let original = str.replace(/\s/g, '');
       
-      // 특수 십단위 표현
       const specialTens = {
         '스물': 20, '스무': 20,
         '서른': 30,
@@ -570,7 +570,6 @@
         }
       }
 
-      // "X십" 패턴 처리 (이십, 삼십, 사십...)
       const tenPatterns = [
         { pattern: '이십', value: 20 },
         { pattern: '삼십', value: 30 },
@@ -589,7 +588,6 @@
         }
       }
 
-      // 일반 "십/열" 처리
       if (original.includes('십') || original.includes('열')) {
         const tenIdx = original.indexOf('십') !== -1 ? original.indexOf('십') : original.indexOf('열');
         const beforeTen = original.substring(0, tenIdx);
@@ -608,7 +606,6 @@
         original = afterTen;
       }
 
-      // 일의 자리 처리
       for (const [word, value] of Object.entries(koreanNumbers)) {
         if (original.includes(word) && value >= 1 && value <= 9) {
           result += value;
@@ -616,7 +613,6 @@
         }
       }
 
-      // 단순 한글 숫자
       if (result === 0) {
         for (const [word, value] of Object.entries(koreanNumbers)) {
           if (str.includes(word)) {
@@ -640,6 +636,7 @@
     let audioContext = null;
     let micStream = null;
     let waitingForAnswer = false;
+    let isRecording = false;
     const synth = window.speechSynthesis;
 
     // DOM Elements
@@ -665,24 +662,13 @@
     const manualAnswer = document.getElementById('manualAnswer');
     const submitManual = document.getElementById('submitManual');
 
-    // 디버그 로그 함수 (먼저 정의)
-    const debugLog = document.getElementById('debugLog');
-    function log(msg) {
-      const time = new Date().toLocaleTimeString();
-      debugLog.innerHTML = `[${time}] ${msg}<br>` + debugLog.innerHTML;
-      console.log(msg);
-    }
-    log('🚀 페이지 로드됨');
-
     // 오디오 컨텍스트 생성 (마이크 권한 유지용)
     async function initAudio() {
-      log('🔧 initAudio 시작');
+      console.log('🔧 initAudio 시작');
       try {
-        // AudioContext 생성
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        log(`AudioContext 상태: ${audioContext.state}`);
+        console.log(`AudioContext 상태: ${audioContext.state}`);
         
-        // 마이크 스트림 획득 및 유지 (고품질 설정)
         micStream = await navigator.mediaDevices.getUserMedia({ 
           audio: {
             echoCancellation: true,
@@ -694,21 +680,23 @@
           } 
         });
         
-        log(`✅ 마이크 스트림 획득 (active: ${micStream.active})`);
+        console.log(`✅ 마이크 스트림 획득 (active: ${micStream.active})`);
         
-        // 스트림을 AudioContext에 연결해서 유지
         const source = audioContext.createMediaStreamSource(micStream);
-        // 실제로 출력하지는 않음 (피드백 방지)
         
         micButton.className = 'mic-button ready';
-        micStatusText.textContent = '마이크 준비 완료';
         
-        // 음성 인식 초기화
+        if (isMobile) {
+          micStatusText.textContent = '마이크 버튼을 눌러 녹음하세요';
+        } else {
+          micStatusText.textContent = '마이크 준비 완료';
+        }
+        
         initRecognition();
         
         return true;
       } catch (err) {
-        log(`❌ 마이크 초기화 실패: ${err.message}`);
+        console.error(`❌ 마이크 초기화 실패: ${err.message}`);
         micButton.className = 'mic-button inactive';
         micStatusText.textContent = '마이크 권한이 필요합니다';
         manualInput.classList.add('show');
@@ -720,7 +708,7 @@
     function initRecognition() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         micStatusText.textContent = '음성인식 미지원 브라우저';
-        log('❌ SpeechRecognition 미지원');
+        console.log('❌ SpeechRecognition 미지원');
         manualInput.classList.add('show');
         return;
       }
@@ -728,40 +716,33 @@
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
       recognition.lang = 'ko-KR';
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      
+      // PC는 continuous, 모바일은 한번만
+      if (isMobile) {
+        recognition.continuous = false;
+        recognition.interimResults = false;
+      } else {
+        recognition.continuous = true;
+        recognition.interimResults = true;
+      }
+      
       recognition.maxAlternatives = 5;
       
-      log('✅ Recognition 객체 생성됨');
+      console.log('✅ Recognition 객체 생성됨 (continuous:', recognition.continuous, ')');
 
       let lastTranscript = '';
       let silenceTimer = null;
 
       recognition.onstart = () => {
-        log('🎙️ 음성인식 시작됨');
-      };
-
-      recognition.onaudiostart = () => {
-        log('🔊 오디오 캡처 시작');
-      };
-
-      recognition.onsoundstart = () => {
-        log('👂 소리 감지됨');
-      };
-
-      recognition.onspeechstart = () => {
-        log('🗣️ 음성 감지됨');
-      };
-
-      recognition.onspeechend = () => {
-        log('🔇 음성 끝');
+        console.log('🎙️ 음성인식 시작됨');
+        isRecording = true;
       };
 
       recognition.onresult = (event) => {
-        log(`📝 onresult 호출 (waitingForAnswer: ${waitingForAnswer})`);
+        console.log(`📝 onresult 호출 (waitingForAnswer: ${waitingForAnswer})`);
         
         if (!waitingForAnswer) {
-          log('⚠️ waitingForAnswer=false, 무시됨');
+          console.log('⚠️ waitingForAnswer=false, 무시됨');
           return;
         }
 
@@ -772,20 +753,26 @@
           const isFinal = event.results[i].isFinal;
           const confidence = event.results[i][0].confidence;
           
-          log(`결과[${i}]: "${transcript}" (final:${isFinal}, conf:${confidence?.toFixed(2)})`);
+          console.log(`결과[${i}]: "${transcript}" (final:${isFinal}, conf:${confidence?.toFixed(2)})`);
           
           if (isFinal) {
             waitingForAnswer = false;
             clearTimeout(silenceTimer);
             processAnswer(transcript);
+            
+            // 모바일은 여기서 recognition 중지
+            if (isMobile) {
+              recognition.stop();
+            }
             return;
           }
         }
         
-        if (transcript && transcript !== lastTranscript) {
+        // PC 전용: 중간 결과 처리
+        if (!isMobile && transcript && transcript !== lastTranscript) {
           lastTranscript = transcript;
           const potentialAnswer = koreanToNumber(transcript);
-          log(`중간결과: "${transcript}" → 숫자: ${potentialAnswer}`);
+          console.log(`중간결과: "${transcript}" → 숫자: ${potentialAnswer}`);
           
           if (potentialAnswer !== null) {
             clearTimeout(silenceTimer);
@@ -800,37 +787,41 @@
       };
 
       recognition.onerror = (event) => {
-        log(`❌ 에러: ${event.error} (message: ${event.message || 'none'})`);
+        console.log(`❌ 에러: ${event.error}`);
+        isRecording = false;
         
         if (event.error === 'not-allowed') {
           micButton.className = 'mic-button inactive';
           micStatusText.textContent = '마이크 권한을 허용해주세요';
           manualInput.classList.add('show');
         } else if (event.error === 'no-speech') {
-          log('⚠️ 음성 없음 감지');
-        } else if (event.error === 'audio-capture') {
-          log('⚠️ 오디오 캡처 실패 - 마이크 문제');
-        } else if (event.error === 'network') {
-          log('⚠️ 네트워크 오류');
+          console.log('⚠️ 음성 없음 감지');
+          if (isMobile && waitingForAnswer) {
+            handleNoSpeech();
+          }
         }
       };
 
       recognition.onend = () => {
-        log(`🔴 Recognition 종료 (gameState: ${gameState}, micStream: ${micStream?.active}, isSpeaking: ${isSpeaking})`);
+        console.log(`🔴 Recognition 종료 (gameState: ${gameState}, isMobile: ${isMobile})`);
+        isRecording = false;
         
-        // TTS 중이면 재시작 안함 (TTS 끝나면 자동 재시작됨)
-        if (isSpeaking) {
-          log('⏸️ TTS 중이라 재시작 안함');
+        // 모바일: 버튼으로 제어하므로 자동 재시작 안 함
+        if (isMobile) {
+          if (waitingForAnswer) {
+            updateMicStatus(false);
+          }
           return;
         }
         
-        if ((gameState === 'playing' || gameState === 'listening') && micStream && micStream.active) {
+        // PC: 게임 중이면 자동 재시작
+        if (gameState === 'playing' && micStream && micStream.active) {
           setTimeout(() => {
             try {
               recognition.start();
-              log('🔄 Recognition 재시작 시도');
+              console.log('🔄 Recognition 재시작 (PC)');
             } catch (e) {
-              log(`⚠️ 재시작 실패: ${e.message}`);
+              console.log(`⚠️ 재시작 실패: ${e.message}`);
             }
           }, 100);
         }
@@ -839,70 +830,64 @@
 
     // 음성 인식 시작
     function startRecognition() {
-      log(`🚀 startRecognition 호출 (recognition: ${!!recognition})`);
+      console.log(`🚀 startRecognition 호출`);
       if (!recognition) {
-        log('❌ recognition 객체 없음!');
+        console.log('❌ recognition 객체 없음!');
         return;
       }
       
       try {
         recognition.start();
-        log('✅ recognition.start() 호출됨');
+        console.log('✅ recognition.start() 호출됨');
+        isRecording = true;
+        updateMicStatus(true);
       } catch (e) {
-        log(`⚠️ start 에러: ${e.message}`);
+        console.log(`⚠️ start 에러: ${e.message}`);
       }
     }
 
     // 음성 인식 중지
     function stopRecognition() {
-      if (recognition) {
+      if (recognition && isRecording) {
         try {
           recognition.stop();
-          log('🛑 recognition.stop() 호출됨');
+          console.log('🛑 recognition.stop() 호출됨');
+          isRecording = false;
         } catch (e) {}
       }
     }
 
-    // TTS - 말하는 동안 음성인식 중지
-    let isSpeaking = false;
-    
+    // TTS
     function speak(text, onEnd) {
       synth.cancel();
-      isSpeaking = true;
       
-      // TTS 시작 전 음성인식 중지
-      stopRecognition();
-      log(`🔊 TTS 시작: "${text}"`);
+      // PC는 TTS 중 음성인식 중지
+      if (!isMobile) {
+        stopRecognition();
+      }
+      
+      console.log(`🔊 TTS 시작: "${text}"`);
       
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ko-KR';
       utterance.rate = 0.9;
       utterance.pitch = 1;
       
-      // onend 이벤트 (안드로이드에서 안 될 수 있음)
       utterance.onend = () => {
-        log('🔊 TTS onend 이벤트');
+        console.log('🔊 TTS 완료');
+        
+        // PC는 TTS 끝나면 자동으로 음성인식 재시작
+        if (!isMobile && (gameState === 'playing' || gameState === 'listening')) {
+          setTimeout(() => {
+            console.log('🎯 TTS 후 recognition 시작 (PC)');
+            startRecognition();
+          }, 500);
+        }
+        
+        if (onEnd) onEnd();
       };
       
       synth.speak(utterance);
-      
-      // 안드로이드용: polling으로 TTS 완료 감지
-      const checkTTS = setInterval(() => {
-        if (!synth.speaking) {
-          clearInterval(checkTTS);
-          log('🔊 TTS 완료 (polling 감지)');
-          isSpeaking = false;
-          
-          // TTS 끝나고 음성인식 시작
-          setTimeout(() => {
-            if (gameState === 'playing' || gameState === 'listening') {
-              log('🎯 TTS 후 recognition 시작');
-              startRecognition();
-            }
-            if (onEnd) onEnd();
-          }, 500);
-        }
-      }, 100);
     }
 
     // 문제 생성
@@ -925,10 +910,18 @@
     function updateMicStatus(isListening) {
       if (isListening) {
         micButton.className = 'mic-button listening';
-        micStatusText.textContent = '듣고 있어요... 크게 말해주세요!';
+        if (isMobile) {
+          micStatusText.textContent = '녹음 중... (다시 누르면 중지)';
+        } else {
+          micStatusText.textContent = '듣고 있어요... 크게 말해주세요!';
+        }
       } else if (micStream && micStream.active) {
         micButton.className = 'mic-button ready';
-        micStatusText.textContent = '마이크 준비됨';
+        if (isMobile) {
+          micStatusText.textContent = '마이크 버튼을 눌러 녹음하세요';
+        } else {
+          micStatusText.textContent = '마이크 준비됨';
+        }
       } else {
         micButton.className = 'mic-button inactive';
         micStatusText.textContent = '마이크 비활성화';
@@ -936,28 +929,43 @@
     }
 
     // 답변 대기 시작
+    let answerTimeout = null;
+    
     function startListening() {
-      log(`🎯 startListening 호출 (recognition: ${!!recognition})`);
+      console.log(`🎯 startListening 호출`);
       gameState = 'listening';
       waitingForAnswer = true;
       manualInput.classList.remove('show');
-      updateMicStatus(true);
-
-      // 타임아웃 처리 (10초)
-      setTimeout(() => {
-        if (waitingForAnswer) {
-          log('⏰ 10초 타임아웃');
-          handleNoSpeech();
-        }
-      }, 10000);
+      
+      // PC는 자동으로 음성인식 시작
+      if (!isMobile) {
+        updateMicStatus(true);
+        // PC는 즉시 타임아웃 시작 (10초)
+        answerTimeout = setTimeout(() => {
+          if (waitingForAnswer) {
+            console.log('⏰ PC 10초 타임아웃');
+            handleNoSpeech();
+          }
+        }, 10000);
+      } else {
+        // 모바일은 버튼 누르면 시작 (타임아웃도 버튼 누른 후 시작)
+        updateMicStatus(false);
+      }
     }
 
     function processAnswer(transcript) {
-      log(`✅ processAnswer: "${transcript}"`);
+      console.log(`✅ processAnswer: "${transcript}"`);
+      
+      // 타임아웃 클리어
+      if (answerTimeout) {
+        clearTimeout(answerTimeout);
+        answerTimeout = null;
+      }
+      
       updateMicStatus(false);
       
       const answer = koreanToNumber(transcript);
-      log(`변환 결과: ${answer}`);
+      console.log(`변환 결과: ${answer}`);
 
       userAnswer.textContent = transcript + (answer !== null ? ` (${answer})` : '');
       userAnswerBox.classList.add('show');
@@ -970,6 +978,12 @@
     }
 
     function handleNoSpeech() {
+      // 타임아웃 클리어
+      if (answerTimeout) {
+        clearTimeout(answerTimeout);
+        answerTimeout = null;
+      }
+      
       waitingForAnswer = false;
       updateMicStatus(false);
       retryCount++;
@@ -980,13 +994,37 @@
       } else {
         setMessage('잘 못 들었어요. 다시 말해주세요!');
         speak('다시 한번 말해주세요!', () => {
-          setTimeout(startListening, 500);
+          setTimeout(() => {
+            waitingForAnswer = true;
+            gameState = 'listening';
+            
+            // PC는 자동 재시작, 모바일은 버튼 대기
+            if (!isMobile) {
+              updateMicStatus(true);
+              // PC는 다시 타임아웃 시작
+              answerTimeout = setTimeout(() => {
+                if (waitingForAnswer) {
+                  console.log('⏰ PC 재시도 타임아웃');
+                  handleNoSpeech();
+                }
+              }, 10000);
+            } else {
+              updateMicStatus(false);
+              // 모바일은 버튼 누를 때까지 대기
+            }
+          }, 500);
         });
       }
     }
 
     function checkAnswer(answer) {
       if (!currentQuestion) return;
+
+      // 타임아웃 클리어
+      if (answerTimeout) {
+        clearTimeout(answerTimeout);
+        answerTimeout = null;
+      }
 
       retryCount = 0;
       manualInput.classList.remove('show');
@@ -1045,6 +1083,13 @@
     function finishGame() {
       gameState = 'finished';
       waitingForAnswer = false;
+      
+      // 타임아웃 클리어
+      if (answerTimeout) {
+        clearTimeout(answerTimeout);
+        answerTimeout = null;
+      }
+      
       stopRecognition();
       
       questionDisplay.classList.remove('show');
@@ -1057,7 +1102,13 @@
       stopBtn.classList.add('hide');
       restartBtn.classList.remove('hide');
       danSelection.classList.remove('hide');
-      micStatusText.textContent = '게임이 종료되었습니다';
+      
+      // 마이크 스트림은 유지 (권한 유지)
+      if (micStream && micStream.active) {
+        micStatusText.textContent = '게임 종료 - 다시하기를 누르세요';
+      } else {
+        micStatusText.textContent = '게임이 종료되었습니다';
+      }
 
       // 결과 표시
       historyList.innerHTML = '';
@@ -1105,9 +1156,6 @@
 
       gameState = 'playing';
       
-      // 음성 인식은 TTS 끝나고 자동 시작됨
-      // startRecognition(); <- 제거
-      
       speak('구구단 게임을 시작합니다!', () => {
         setTimeout(nextQuestion, 500);
       });
@@ -1116,6 +1164,13 @@
     function resetGame() {
       synth.cancel();
       waitingForAnswer = false;
+      
+      // 타임아웃 클리어
+      if (answerTimeout) {
+        clearTimeout(answerTimeout);
+        answerTimeout = null;
+      }
+      
       stopRecognition();
 
       gameState = 'ready';
@@ -1132,9 +1187,14 @@
       manualInput.classList.remove('show');
       setMessage('시작 버튼을 눌러주세요!');
       
+      // 마이크 스트림은 유지 (권한 유지)
       if (micStream && micStream.active) {
         micButton.className = 'mic-button ready';
-        micStatusText.textContent = '마이크 준비됨';
+        if (isMobile) {
+          micStatusText.textContent = '마이크 버튼을 눌러 녹음하세요';
+        } else {
+          micStatusText.textContent = '마이크 준비됨';
+        }
       } else {
         micButton.className = 'mic-button inactive';
         micStatusText.textContent = '게임을 시작하면 활성화됩니다';
@@ -1146,16 +1206,63 @@
       danSelection.classList.remove('hide');
     }
 
-    // 마이크 버튼 클릭 - 수동으로 다시 듣기
+    // 마이크 버튼 클릭
     micButton.addEventListener('click', () => {
-      if (gameState === 'playing' || gameState === 'listening') {
+      if (gameState !== 'playing' && gameState !== 'listening') {
+        return;
+      }
+
+      if (isMobile) {
+        // 모바일: 버튼 눌러서 녹음 시작/중지
+        if (isRecording) {
+          // 녹음 중이면 중지
+          stopRecognition();
+          updateMicStatus(false);
+          
+          // 타임아웃 클리어
+          if (answerTimeout) {
+            clearTimeout(answerTimeout);
+            answerTimeout = null;
+          }
+        } else {
+          // 녹음 시작
+          if (waitingForAnswer) {
+            startRecognition();
+            
+            // 모바일: 버튼 누른 시점부터 타임아웃 시작 (15초)
+            answerTimeout = setTimeout(() => {
+              if (waitingForAnswer && isRecording) {
+                console.log('⏰ 모바일 15초 타임아웃');
+                stopRecognition();
+                handleNoSpeech();
+              }
+            }, 15000);
+          }
+        }
+      } else {
+        // PC: 다시 듣기
         retryCount = 0;
         manualInput.classList.remove('show');
+        
+        // 기존 타임아웃 클리어
+        if (answerTimeout) {
+          clearTimeout(answerTimeout);
+          answerTimeout = null;
+        }
+        
         waitingForAnswer = false;
         
-        // 잠시 후 다시 시작
         setTimeout(() => {
-          startListening();
+          waitingForAnswer = true;
+          updateMicStatus(true);
+          
+          // 새 타임아웃 시작
+          answerTimeout = setTimeout(() => {
+            if (waitingForAnswer) {
+              console.log('⏰ PC 다시듣기 타임아웃');
+              handleNoSpeech();
+            }
+          }, 10000);
         }, 300);
       }
     });
@@ -1194,11 +1301,19 @@
     // 페이지 visibility 변경 시 처리
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        // 백그라운드로 가면 음성 인식 중지
         stopRecognition();
-      } else if (gameState === 'playing' || gameState === 'listening') {
-        // 포그라운드로 돌아오면 재시작
+      } else if (!isMobile && (gameState === 'playing' || gameState === 'listening')) {
         startRecognition();
+      }
+    });
+
+    // 페이지 종료 시 스트림 정리 (브라우저 종료/탭 닫기)
+    window.addEventListener('beforeunload', () => {
+      if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+      }
+      if (audioContext) {
+        audioContext.close();
       }
     });
   </script>
