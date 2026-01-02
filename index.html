@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>구구단을 외자! 🎯</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: 'Noto Sans KR', sans-serif;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: clamp(2rem, 7vw, 3.5rem);
+      color: #fff;
+      text-shadow: 0 0 30px rgba(233, 69, 96, 0.5), 0 4px 0 #e94560;
+      letter-spacing: 2px;
+    }
+
+    .header p {
+      color: rgba(255,255,255,0.6);
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      margin-top: 8px;
+    }
+
+    .score-board {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+      justify-content: center;
+    }
+
+    .score-item {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 12px 25px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.2);
+      flex: 1;
+      max-width: 140px;
+    }
+
+    .score-item.highlight {
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+      border: none;
+    }
+
+    .score-label {
+      color: rgba(255,255,255,0.6);
+      font-size: clamp(0.7rem, 2vw, 0.8rem);
+    }
+
+    .highlight .score-label {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .score-value {
+      color: #fff;
+      font-size: clamp(1.4rem, 4vw, 1.8rem);
+      font-weight: bold;
+    }
+
+    .game-area {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 25px;
+      padding: clamp(20px, 5vw, 35px);
+      width: 100%;
+      max-width: 450px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    }
+
+    .question-display {
+      text-align: center;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .question-display.show {
+      display: block;
+    }
+
+    .question-text {
+      font-size: clamp(2.5rem, 10vw, 4.5rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(233, 69, 96, 0.3);
+    }
+
+    .message-box {
+      text-align: center;
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .message-box.correct {
+      background: rgba(46, 213, 115, 0.2);
+    }
+
+    .message-box.wrong {
+      background: rgba(255, 71, 87, 0.2);
+    }
+
+    .message-text {
+      color: #fff;
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      font-weight: bold;
+    }
+
+    .message-box.correct .message-text {
+      color: #2ed573;
+    }
+
+    .message-box.wrong .message-text {
+      color: #ff4757;
+    }
+
+    .user-answer {
+      text-align: center;
+      margin-bottom: 15px;
+      color: rgba(255,255,255,0.7);
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      display: none;
+    }
+
+    .user-answer.show {
+      display: block;
+    }
+
+    .user-answer span {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* 마이크 인디케이터 - 항상 표시 */
+    .mic-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .mic-button {
+      width: clamp(70px, 18vw, 90px);
+      height: clamp(70px, 18vw, 90px);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.8rem, 5vw, 2.2rem);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .mic-button.inactive {
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+
+    .mic-button.listening {
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .mic-button.ready {
+      background: linear-gradient(135deg, #2ed573 0%, #7bed9f 100%);
+      box-shadow: 0 0 20px rgba(46, 213, 115, 0.4);
+    }
+
+    .mic-status-text {
+      color: rgba(255,255,255,0.7);
+      font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 50px rgba(233, 69, 96, 0.8);
+      }
+    }
+
+    .dan-selection {
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .dan-selection.hide {
+      display: none;
+    }
+
+    .dan-label {
+      color: rgba(255,255,255,0.7);
+      display: block;
+      margin-bottom: 10px;
+      text-align: center;
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+    }
+
+    .dan-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .dan-btn {
+      padding: clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 14px);
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+    }
+
+    .dan-btn:active {
+      transform: scale(0.95);
+    }
+
+    .dan-btn.selected {
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: clamp(12px, 3vw, 15px) clamp(30px, 8vw, 45px);
+      font-size: clamp(1rem, 3vw, 1.15rem);
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      color: #fff;
+      box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+    }
+
+    .btn-secondary {
+      padding: clamp(10px, 2.5vw, 12px) clamp(20px, 5vw, 28px);
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      border: 2px solid rgba(255,255,255,0.3);
+      background: transparent;
+      color: #fff;
+    }
+
+    .btn.hide {
+      display: none;
+    }
+
+    .history {
+      margin-top: 25px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 450px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: none;
+    }
+
+    .history.show {
+      display: block;
+    }
+
+    .history h3 {
+      color: #fff;
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: clamp(1rem, 3vw, 1.2rem);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+    }
+
+    .history-item.correct {
+      background: rgba(46, 213, 115, 0.15);
+    }
+
+    .history-item.wrong {
+      background: rgba(255, 71, 87, 0.15);
+    }
+
+    .history-question {
+      color: #fff;
+    }
+
+    .history-result {
+      font-weight: bold;
+    }
+
+    .history-result.correct {
+      color: #2ed573;
+    }
+
+    .history-result.wrong {
+      color: #ff4757;
+    }
+
+    .manual-input {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .manual-input.show {
+      display: block;
+    }
+
+    .manual-input input {
+      padding: 12px 15px;
+      font-size: clamp(1rem, 3vw, 1.2rem);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      width: 100px;
+      text-align: center;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .manual-input input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .manual-input button {
+      margin-left: 10px;
+      padding: 12px 18px;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      color: #fff;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .manual-label {
+      color: rgba(255,255,255,0.6);
+      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      margin-bottom: 10px;
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 380px) {
+      .dan-buttons {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-height: 700px) {
+      .game-area {
+        padding: 30px;
+      }
+    }
+
+    /* iOS Safari 대응 */
+    @supports (-webkit-touch-callout: none) {
+      body {
+        min-height: -webkit-fill-available;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 구구단을 외자!</h1>
+    <p>음성으로 답하는 구구단 게임</p>
+  </div>
+
+  <div class="score-board">
+    <div class="score-item">
+      <div class="score-label">문제</div>
+      <div class="score-value"><span id="currentQ">0</span>/10</div>
+    </div>
+    <div class="score-item highlight">
+      <div class="score-label">점수</div>
+      <div class="score-value" id="score">0</div>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <div class="question-display" id="questionDisplay">
+      <div class="question-text" id="questionText">0 × 0</div>
+    </div>
+
+    <div class="message-box" id="messageBox">
+      <p class="message-text" id="messageText">시작 버튼을 눌러주세요!</p>
+    </div>
+
+    <div class="user-answer" id="userAnswerBox">
+      들은 답변: <span id="userAnswer"></span>
+    </div>
+
+    <!-- 마이크 버튼 항상 표시 -->
+    <div class="mic-container" id="micContainer">
+      <button class="mic-button inactive" id="micButton">🎤</button>
+      <div class="mic-status-text" id="micStatusText">게임을 시작하면 활성화됩니다</div>
+    </div>
+
+    <div class="dan-selection" id="danSelection">
+      <label class="dan-label">연습할 단 선택</label>
+      <div class="dan-buttons" id="danButtons">
+        <button class="dan-btn selected" data-dan="0">랜덤</button>
+        <button class="dan-btn" data-dan="2">2단</button>
+        <button class="dan-btn" data-dan="3">3단</button>
+        <button class="dan-btn" data-dan="4">4단</button>
+        <button class="dan-btn" data-dan="5">5단</button>
+        <button class="dan-btn" data-dan="6">6단</button>
+        <button class="dan-btn" data-dan="7">7단</button>
+        <button class="dan-btn" data-dan="8">8단</button>
+        <button class="dan-btn" data-dan="9">9단</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="startBtn">🎮 게임 시작</button>
+      <button class="btn btn-secondary hide" id="stopBtn">⏹️ 그만하기</button>
+      <button class="btn btn-primary hide" id="restartBtn">🔄 다시 하기</button>
+    </div>
+
+    <!-- 수동 입력 옵션 -->
+    <div class="manual-input" id="manualInput">
+      <div class="manual-label">음성이 안 되면 직접 입력하세요</div>
+      <input type="number" inputmode="numeric" pattern="[0-9]*" id="manualAnswer" placeholder="답">
+      <button id="submitManual">확인</button>
+    </div>
+  </div>
+
+  <div class="history" id="history">
+    <h3>📋 결과</h3>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <script>
+    // 한글 숫자 -> 아라비아 숫자 변환 (확장)
+    const koreanNumbers = {
+      '영': 0, '공': 0, '빵': 0, '령': 0,
+      '일': 1, '하나': 1, '한': 1,
+      '이': 2, '둘': 2, '두': 2,
+      '삼': 3, '셋': 3, '세': 3, '석': 3,
+      '사': 4, '넷': 4, '네': 4,
+      '오': 5, '다섯': 5,
+      '육': 6, '여섯': 6, '륙': 6,
+      '칠': 7, '일곱': 7,
+      '팔': 8, '여덟': 8,
+      '구': 9, '아홉': 9,
+      '십': 10, '열': 10,
+      '백': 100
+    };
+
+    // 발음 유사 숫자 매핑 (음성 인식 오류 보정)
+    const soundAlikeNumbers = {
+      // 비슷하게 들릴 수 있는 단어들
+      '사십': 40, '오십': 50, '육십': 60, '칠십': 70, '팔십': 80, '구십': 90,
+      '이십': 20, '삼십': 30,
+      '사이': 4, '다시': 5, '여시': 6,
+      '12': 12, '24': 24, '36': 36, '48': 48,
+      '서른여섯': 36, '마흔여덟': 48, '쉰넷': 54,
+      '예순삼': 63, '일흔둘': 72, '여든하나': 81
+    };
+
+    function koreanToNumber(str) {
+      // 공백 및 특수문자 정리
+      str = str.trim().replace(/[.,!?]/g, '');
+      
+      // 아라비아 숫자 우선 확인
+      const arabicMatch = str.match(/\d+/);
+      if (arabicMatch) {
+        return parseInt(arabicMatch[0]);
+      }
+
+      // 발음 유사 단어 먼저 체크
+      for (const [word, value] of Object.entries(soundAlikeNumbers)) {
+        if (str.includes(word)) {
+          return value;
+        }
+      }
+
+      let result = 0;
+      let original = str.replace(/\s/g, '');
+      
+      // 특수 십단위 표현
+      const specialTens = {
+        '스물': 20, '스무': 20,
+        '서른': 30,
+        '마흔': 40,
+        '쉰': 50, '쉽': 50,
+        '예순': 60,
+        '일흔': 70,
+        '여든': 80,
+        '아흔': 90
+      };
+
+      for (const [word, value] of Object.entries(specialTens)) {
+        if (original.includes(word)) {
+          result += value;
+          original = original.replace(word, '');
+        }
+      }
+
+      // "X십" 패턴 처리 (이십, 삼십, 사십...)
+      const tenPatterns = [
+        { pattern: '이십', value: 20 },
+        { pattern: '삼십', value: 30 },
+        { pattern: '사십', value: 40 },
+        { pattern: '오십', value: 50 },
+        { pattern: '육십', value: 60 },
+        { pattern: '칠십', value: 70 },
+        { pattern: '팔십', value: 80 },
+        { pattern: '구십', value: 90 }
+      ];
+
+      for (const { pattern, value } of tenPatterns) {
+        if (original.includes(pattern)) {
+          result += value;
+          original = original.replace(pattern, '');
+        }
+      }
+
+      // 일반 "십/열" 처리
+      if (original.includes('십') || original.includes('열')) {
+        const tenIdx = original.indexOf('십') !== -1 ? original.indexOf('십') : original.indexOf('열');
+        const beforeTen = original.substring(0, tenIdx);
+        const afterTen = original.substring(tenIdx + 1);
+        
+        let tens = 1;
+        for (const [word, value] of Object.entries(koreanNumbers)) {
+          if (beforeTen.includes(word) && value >= 1 && value <= 9) {
+            tens = value;
+            break;
+          }
+        }
+        if (result === 0) {
+          result += tens * 10;
+        }
+        original = afterTen;
+      }
+
+      // 일의 자리 처리
+      for (const [word, value] of Object.entries(koreanNumbers)) {
+        if (original.includes(word) && value >= 1 && value <= 9) {
+          result += value;
+          break;
+        }
+      }
+
+      // 단순 한글 숫자
+      if (result === 0) {
+        for (const [word, value] of Object.entries(koreanNumbers)) {
+          if (str.includes(word)) {
+            return value;
+          }
+        }
+      }
+
+      return result > 0 ? result : null;
+    }
+
+    // Game State
+    let gameState = 'ready';
+    let currentQuestion = null;
+    let score = 0;
+    let totalQuestions = 0;
+    let selectedDan = 0;
+    let history = [];
+    let recognition = null;
+    let retryCount = 0;
+    let audioContext = null;
+    let micStream = null;
+    let waitingForAnswer = false;
+    const synth = window.speechSynthesis;
+
+    // DOM Elements
+    const questionDisplay = document.getElementById('questionDisplay');
+    const questionText = document.getElementById('questionText');
+    const messageBox = document.getElementById('messageBox');
+    const messageText = document.getElementById('messageText');
+    const userAnswerBox = document.getElementById('userAnswerBox');
+    const userAnswer = document.getElementById('userAnswer');
+    const micContainer = document.getElementById('micContainer');
+    const micButton = document.getElementById('micButton');
+    const micStatusText = document.getElementById('micStatusText');
+    const danSelection = document.getElementById('danSelection');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const scoreEl = document.getElementById('score');
+    const currentQEl = document.getElementById('currentQ');
+    const historyEl = document.getElementById('history');
+    const historyList = document.getElementById('historyList');
+    const danButtons = document.querySelectorAll('.dan-btn');
+    const manualInput = document.getElementById('manualInput');
+    const manualAnswer = document.getElementById('manualAnswer');
+    const submitManual = document.getElementById('submitManual');
+
+    // 오디오 컨텍스트 생성 (마이크 권한 유지용)
+    async function initAudio() {
+      try {
+        // AudioContext 생성
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 마이크 스트림 획득 및 유지 (고품질 설정)
+        micStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 48000,
+            sampleSize: 16
+          } 
+        });
+        
+        // 스트림을 AudioContext에 연결해서 유지
+        const source = audioContext.createMediaStreamSource(micStream);
+        // 실제로 출력하지는 않음 (피드백 방지)
+        
+        micButton.className = 'mic-button ready';
+        micStatusText.textContent = '마이크 준비 완료';
+        
+        // 음성 인식 초기화
+        initRecognition();
+        
+        return true;
+      } catch (err) {
+        console.error('마이크 초기화 실패:', err);
+        micButton.className = 'mic-button inactive';
+        micStatusText.textContent = '마이크 권한이 필요합니다';
+        manualInput.classList.add('show');
+        return false;
+      }
+    }
+
+    // Speech Recognition 초기화
+    function initRecognition() {
+      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        micStatusText.textContent = '음성인식 미지원 브라우저';
+        manualInput.classList.add('show');
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ko-KR';
+      recognition.continuous = true;
+      recognition.interimResults = true; // 중간 결과도 받아서 빠른 반응
+      recognition.maxAlternatives = 5; // 더 많은 대안 받기
+
+      let lastTranscript = '';
+      let silenceTimer = null;
+
+      recognition.onresult = (event) => {
+        if (!waitingForAnswer) return;
+
+        let transcript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript = event.results[i][0].transcript;
+          
+          // 최종 결과면 바로 처리
+          if (event.results[i].isFinal) {
+            waitingForAnswer = false;
+            clearTimeout(silenceTimer);
+            processAnswer(transcript);
+            return;
+          }
+        }
+        
+        // 중간 결과에서 숫자가 감지되면 잠시 기다렸다가 처리
+        if (transcript && transcript !== lastTranscript) {
+          lastTranscript = transcript;
+          const potentialAnswer = koreanToNumber(transcript);
+          
+          if (potentialAnswer !== null) {
+            // 숫자가 감지되면 0.8초 동안 추가 입력 대기
+            clearTimeout(silenceTimer);
+            silenceTimer = setTimeout(() => {
+              if (waitingForAnswer) {
+                waitingForAnswer = false;
+                processAnswer(transcript);
+              }
+            }, 800);
+          }
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.log('Recognition error:', event.error);
+        
+        if (event.error === 'not-allowed') {
+          micButton.className = 'mic-button inactive';
+          micStatusText.textContent = '마이크 권한을 허용해주세요';
+          manualInput.classList.add('show');
+        }
+      };
+
+      recognition.onend = () => {
+        // 게임 중이고 마이크 스트림이 살아있으면 자동 재시작
+        if ((gameState === 'playing' || gameState === 'listening') && micStream && micStream.active) {
+          setTimeout(() => {
+            try {
+              recognition.start();
+            } catch (e) {
+              // 이미 시작됨
+            }
+          }, 100);
+        }
+      };
+    }
+
+    // 음성 인식 시작
+    function startRecognition() {
+      if (!recognition) return;
+      
+      try {
+        recognition.start();
+      } catch (e) {
+        // 이미 시작된 경우 무시
+      }
+    }
+
+    // 음성 인식 중지
+    function stopRecognition() {
+      if (recognition) {
+        try {
+          recognition.stop();
+        } catch (e) {}
+      }
+    }
+
+    // TTS
+    function speak(text, onEnd) {
+      synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ko-KR';
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      if (onEnd) {
+        utterance.onend = onEnd;
+      }
+      synth.speak(utterance);
+    }
+
+    // 문제 생성
+    function generateQuestion() {
+      const dan = selectedDan === 0 ? Math.floor(Math.random() * 8) + 2 : selectedDan;
+      const num = Math.floor(Math.random() * 9) + 1;
+      return { dan, num, answer: dan * num };
+    }
+
+    function updateScore() {
+      scoreEl.textContent = score;
+      currentQEl.textContent = totalQuestions;
+    }
+
+    function setMessage(text, state = '') {
+      messageText.textContent = text;
+      messageBox.className = 'message-box' + (state ? ' ' + state : '');
+    }
+
+    function updateMicStatus(isListening) {
+      if (isListening) {
+        micButton.className = 'mic-button listening';
+        micStatusText.textContent = '듣고 있어요... 크게 말해주세요!';
+      } else if (micStream && micStream.active) {
+        micButton.className = 'mic-button ready';
+        micStatusText.textContent = '마이크 준비됨';
+      } else {
+        micButton.className = 'mic-button inactive';
+        micStatusText.textContent = '마이크 비활성화';
+      }
+    }
+
+    // 답변 대기 시작
+    function startListening() {
+      gameState = 'listening';
+      waitingForAnswer = true;
+      manualInput.classList.remove('show');
+      updateMicStatus(true);
+
+      // 타임아웃 처리 (10초)
+      setTimeout(() => {
+        if (waitingForAnswer) {
+          handleNoSpeech();
+        }
+      }, 10000);
+    }
+
+    function processAnswer(transcript) {
+      updateMicStatus(false);
+      
+      const answer = koreanToNumber(transcript);
+
+      userAnswer.textContent = transcript + (answer !== null ? ` (${answer})` : '');
+      userAnswerBox.classList.add('show');
+
+      if (answer !== null) {
+        checkAnswer(answer);
+      } else {
+        handleNoSpeech();
+      }
+    }
+
+    function handleNoSpeech() {
+      waitingForAnswer = false;
+      updateMicStatus(false);
+      retryCount++;
+      
+      if (retryCount >= 3) {
+        setMessage('음성 인식이 어려워요. 직접 입력해주세요!');
+        manualInput.classList.add('show');
+      } else {
+        setMessage('잘 못 들었어요. 다시 말해주세요!');
+        speak('다시 한번 말해주세요!', () => {
+          setTimeout(startListening, 500);
+        });
+      }
+    }
+
+    function checkAnswer(answer) {
+      if (!currentQuestion) return;
+
+      retryCount = 0;
+      manualInput.classList.remove('show');
+
+      const isCorrect = answer === currentQuestion.answer;
+
+      history.push({
+        question: `${currentQuestion.dan} × ${currentQuestion.num}`,
+        correctAnswer: currentQuestion.answer,
+        userAnswer: answer,
+        isCorrect
+      });
+
+      if (isCorrect) {
+        score++;
+        updateScore();
+        gameState = 'correct';
+        setMessage('정답이에요! 🎉', 'correct');
+        speak('딩동댕! 정답이에요!', () => {
+          setTimeout(nextQuestion, 1000);
+        });
+      } else {
+        gameState = 'wrong';
+        setMessage(`틀렸어요! 정답은 ${currentQuestion.answer}이에요`, 'wrong');
+        speak(`틀렸어요. 정답은 ${currentQuestion.answer}입니다.`, () => {
+          setTimeout(nextQuestion, 1500);
+        });
+      }
+    }
+
+    function nextQuestion() {
+      if (totalQuestions >= 10) {
+        finishGame();
+        return;
+      }
+
+      retryCount = 0;
+      currentQuestion = generateQuestion();
+      totalQuestions++;
+      updateScore();
+      userAnswerBox.classList.remove('show');
+      manualInput.classList.remove('show');
+      gameState = 'playing';
+
+      questionText.textContent = `${currentQuestion.dan} × ${currentQuestion.num}`;
+      questionDisplay.classList.add('show');
+
+      const questionSpeech = `${currentQuestion.dan} 곱하기 ${currentQuestion.num}은?`;
+      setMessage(questionSpeech);
+
+      speak(questionSpeech, () => {
+        setTimeout(startListening, 500);
+      });
+    }
+
+    function finishGame() {
+      gameState = 'finished';
+      waitingForAnswer = false;
+      stopRecognition();
+      
+      questionDisplay.classList.remove('show');
+      manualInput.classList.remove('show');
+      updateMicStatus(false);
+      setMessage(`게임 끝! ${score}점을 받았어요!`);
+      speak(`게임이 끝났습니다. 열 문제 중 ${score}개를 맞혔어요!`);
+
+      startBtn.classList.add('hide');
+      stopBtn.classList.add('hide');
+      restartBtn.classList.remove('hide');
+      danSelection.classList.remove('hide');
+      micStatusText.textContent = '게임이 종료되었습니다';
+
+      // 결과 표시
+      historyList.innerHTML = '';
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item ' + (item.isCorrect ? 'correct' : 'wrong');
+        div.innerHTML = `
+          <span class="history-question">${item.question} = ${item.correctAnswer}</span>
+          <span class="history-result ${item.isCorrect ? 'correct' : 'wrong'}">
+            ${item.isCorrect ? '⭕' : `❌ (${item.userAnswer})`}
+          </span>
+        `;
+        historyList.appendChild(div);
+      });
+      historyEl.classList.add('show');
+    }
+
+    async function startGame() {
+      // 첫 시작시 오디오 초기화
+      if (!micStream) {
+        const success = await initAudio();
+        if (!success) {
+          // 마이크 없어도 수동 입력으로 진행 가능
+        }
+      }
+
+      // AudioContext resume (모바일 대응)
+      if (audioContext && audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      score = 0;
+      totalQuestions = 0;
+      history = [];
+      retryCount = 0;
+      updateScore();
+      historyEl.classList.remove('show');
+      userAnswerBox.classList.remove('show');
+      manualInput.classList.remove('show');
+
+      startBtn.classList.add('hide');
+      restartBtn.classList.add('hide');
+      stopBtn.classList.remove('hide');
+      danSelection.classList.add('hide');
+
+      gameState = 'playing';
+      
+      // 음성 인식 시작
+      startRecognition();
+      
+      speak('구구단 게임을 시작합니다!', () => {
+        setTimeout(nextQuestion, 500);
+      });
+    }
+
+    function resetGame() {
+      synth.cancel();
+      waitingForAnswer = false;
+      stopRecognition();
+
+      gameState = 'ready';
+      currentQuestion = null;
+      score = 0;
+      totalQuestions = 0;
+      history = [];
+      retryCount = 0;
+      updateScore();
+
+      questionDisplay.classList.remove('show');
+      userAnswerBox.classList.remove('show');
+      historyEl.classList.remove('show');
+      manualInput.classList.remove('show');
+      setMessage('시작 버튼을 눌러주세요!');
+      
+      if (micStream && micStream.active) {
+        micButton.className = 'mic-button ready';
+        micStatusText.textContent = '마이크 준비됨';
+      } else {
+        micButton.className = 'mic-button inactive';
+        micStatusText.textContent = '게임을 시작하면 활성화됩니다';
+      }
+
+      startBtn.classList.remove('hide');
+      stopBtn.classList.add('hide');
+      restartBtn.classList.add('hide');
+      danSelection.classList.remove('hide');
+    }
+
+    // 마이크 버튼 클릭 - 수동으로 다시 듣기
+    micButton.addEventListener('click', () => {
+      if (gameState === 'playing' || gameState === 'listening') {
+        retryCount = 0;
+        manualInput.classList.remove('show');
+        waitingForAnswer = false;
+        
+        // 잠시 후 다시 시작
+        setTimeout(() => {
+          startListening();
+        }, 300);
+      }
+    });
+
+    // Event listeners
+    startBtn.addEventListener('click', startGame);
+    stopBtn.addEventListener('click', resetGame);
+    restartBtn.addEventListener('click', startGame);
+
+    submitManual.addEventListener('click', () => {
+      const value = parseInt(manualAnswer.value);
+      if (!isNaN(value)) {
+        manualAnswer.value = '';
+        userAnswer.textContent = value;
+        userAnswerBox.classList.add('show');
+        waitingForAnswer = false;
+        updateMicStatus(false);
+        checkAnswer(value);
+      }
+    });
+
+    manualAnswer.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        submitManual.click();
+      }
+    });
+
+    danButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        danButtons.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedDan = parseInt(btn.dataset.dan);
+      });
+    });
+
+    // 페이지 visibility 변경 시 처리
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // 백그라운드로 가면 음성 인식 중지
+        stopRecognition();
+      } else if (gameState === 'playing' || gameState === 'listening') {
+        // 포그라운드로 돌아오면 재시작
+        startRecognition();
+      }
+    });
+  </script>
+</body>
+</html>
